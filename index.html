@@ -30,6 +30,7 @@
 </head>
 <body>
   <svg class="map" viewBox="0 0 960 480" role="img" aria-label="Basic Mercator projection graticule"></svg>
+  <noscript>This page requires JavaScript to render the Mercator projection.</noscript>
 
   <script>
     const width = 960;
@@ -86,6 +87,8 @@
       dot.setAttribute('cy', y.toFixed(2));
       dot.setAttribute('r', '4');
       dot.setAttribute('fill', '#ef4444');
+      dot.setAttribute('role', 'img');
+      dot.setAttribute('aria-label', `${city.name} marker`);
       svg.appendChild(dot);
 
       const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -93,6 +96,8 @@
       label.setAttribute('x', (x + 6).toFixed(2));
       label.setAttribute('y', (y - 6).toFixed(2));
       label.setAttribute('class', 'label');
+      label.setAttribute('role', 'img');
+      label.setAttribute('aria-label', `${city.name} label`);
       svg.appendChild(label);
     }
   </script>
