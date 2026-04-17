@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basic Mercator Projection</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #f4f7fb;
+      font-family: Arial, sans-serif;
+    }
+
+    .map {
+      width: min(95vw, 960px);
+      aspect-ratio: 2 / 1;
+      border: 1px solid #b8c3d3;
+      background: #dff1ff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .label {
+      font-size: 12px;
+      fill: #1f2937;
+    }
+  </style>
+</head>
+<body>
+  <svg class="map" viewBox="0 0 960 480" role="img" aria-label="Basic Mercator projection graticule"></svg>
+  <noscript>
+    JavaScript is disabled, so the Mercator projection cannot render. Enable JavaScript and reload this page to view the map.
+  </noscript>
+
+  <script>
+    const width = 960;
+    const height = 480;
+    const svg = document.querySelector('.map');
+
+    const toRadians = (deg) => (deg * Math.PI) / 180;
+    const clampLatitude = (lat) => Math.max(-85, Math.min(85, lat));
+
+    function mercatorProject(longitude, latitude) {
+      const lat = clampLatitude(latitude);
+      const x = ((longitude + 180) / 360) * width;
+      const y = (height / 2) - (width / (2 * Math.PI)) * Math.log(Math.tan(Math.PI / 4 + toRadians(lat) / 2));
+      return [x, y];
+    }
+
+    function createPath(points, stroke, strokeWidth = 1, opacity = 1) {
+      const d = points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`).join(' ');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', stroke);
+      path.setAttribute('stroke-width', String(strokeWidth));
+      path.setAttribute('opacity', String(opacity));
+      svg.appendChild(path);
+    }
+
+    for (let lon = -180; lon <= 180; lon += 15) {
+      const points = [];
+      for (let lat = -80; lat <= 80; lat += 2) {
+        points.push(mercatorProject(lon, lat));
+      }
+      createPath(points, lon === 0 ? '#2563eb' : '#7aa6d4', lon === 0 ? 2 : 1, 0.8);
+    }
+
+    for (let lat = -75; lat <= 75; lat += 15) {
+      const points = [];
+      for (let lon = -180; lon <= 180; lon += 2) {
+        points.push(mercatorProject(lon, lat));
+      }
+      createPath(points, lat === 0 ? '#2563eb' : '#7aa6d4', lat === 0 ? 2 : 1, 0.8);
+    }
+
+    const cities = [
+      { name: 'New York', lon: -74.006, lat: 40.7128 },
+      { name: 'London', lon: -0.1278, lat: 51.5074 },
+      { name: 'Tokyo', lon: 139.6917, lat: 35.6895 }
+    ];
+
+    for (const city of cities) {
+      const [x, y] = mercatorProject(city.lon, city.lat);
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot.setAttribute('cx', x.toFixed(2));
+      dot.setAttribute('cy', y.toFixed(2));
+      dot.setAttribute('r', '4');
+      dot.setAttribute('fill', '#ef4444');
+      const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+      title.textContent = `${city.name} marker`;
+      dot.appendChild(title);
+      svg.appendChild(dot);
+
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.textContent = city.name;
+      label.setAttribute('x', (x + 6).toFixed(2));
+      label.setAttribute('y', (y - 6).toFixed(2));
+      label.setAttribute('class', 'label');
+      svg.appendChild(label);
+    }
+  </script>
+</body>
+</html>
